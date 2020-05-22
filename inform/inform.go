@@ -14,7 +14,7 @@ var ErrNoMagic = errors.New("missing magic header")
 // does not match version known compatible with this library
 var ErrUnhandledVer = errors.New("unhandled payload version")
 
-// InformHeader represents header of inform message from Ubiquiti UniFi device
+// Header represents header of inform message from Ubiquiti UniFi device
 type Header struct {
 	Version          uint32
 	HardwareAddr     net.HardwareAddr
@@ -28,6 +28,7 @@ type Header struct {
 	EncryptedGCM     bool
 }
 
+// Payload is the payload, yo
 type Payload struct {
 }
 
@@ -37,7 +38,7 @@ func (ih *Header) DecodePayload(rdr io.Reader) (inp Payload, err error) {
 	return inp, err
 }
 
-// DecodeInformHeader parses a ubiquiti inform message
+// DecodeHeader parses a ubiquiti inform message
 func DecodeHeader(rdr io.Reader) (inf Header, err error) {
 	magic := make([]byte, 4, 4)
 	binary.Read(rdr, binary.BigEndian, &magic)
