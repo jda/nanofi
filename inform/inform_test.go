@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var intro = []byte{0x54, 0x4e, 0x42, 0x55, 0x00, 0x00, 0x00, 0x00,
+var sampleInform = []byte{0x54, 0x4e, 0x42, 0x55, 0x00, 0x00, 0x00, 0x00,
 	0x74, 0x83, 0xc2, 0x0f, 0x15, 0xb0, 0x00, 0x09,
 	0x39, 0x38, 0x6d, 0xea, 0xbb, 0xa3, 0x03, 0x97,
 	0x13, 0x98, 0xef, 0xce, 0xba, 0x36, 0xaa, 0x13,
@@ -388,16 +388,29 @@ var intro = []byte{0x54, 0x4e, 0x42, 0x55, 0x00, 0x00, 0x00, 0x00,
 	0xab, 0xfc, 0xee, 0xad,
 }
 
+var sampleInformHeader = Header{
+	Version:          0,
+	HardwareAddr:     []byte{0x74, 0x83, 0xc2, 0x0f, 0x15, 0xb0},
+	flagMask:         9,
+	iv:               []byte{57, 56, 109, 234, 187, 163, 3, 151, 19, 152, 239, 206, 186, 54, 170, 19},
+	payloadVersion:   1,
+	payloadLength:    2988,
+	EncryptedAES:     true,
+	ZLibCompressed:   false,
+	SnappyCompressed: false,
+	EncryptedGCM:     true,
+}
+
 func TestDecodeNoMagic(t *testing.T) {
 	noMagic := []byte{21, 45, 200, 79, 94, 41, 236, 119, 50, 198, 36, 22, 69, 176, 232, 131, 166, 6, 237, 176, 50, 41, 216, 181, 166, 213, 189, 59, 81, 216}
 	r := bytes.NewReader(noMagic)
-	_, err := Decode(r)
+	_, err := DecodeHeader(r)
 	assert.Equal(t, ErrNoMagic, err, "decode should return ErrNoMagic when magic header not found")
 }
 
-func TestDecode(t *testing.T) {
-	r := bytes.NewReader(intro)
-	out, err := Decode(r)
+func TestDecodeHeader(t *testing.T) {
+	r := bytes.NewReader(sampleInform)
+	out, err := DecodeHeader(r)
 	assert.Nil(t, err, "successful decode should not return any errors")
-	t.Logf("out: %+v", out)
+	assert.Equal(t, sampleInformHeader, out, "response should equal sample")
 }
