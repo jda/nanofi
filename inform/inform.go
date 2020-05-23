@@ -62,11 +62,13 @@ func (ih *Header) DecodePayload(rdr io.Reader, key string) (inp Payload, err err
 	// decrypt
 	if ih.EncryptedAES && !ih.EncryptedGCM { // not implementing CBC unless we need it
 		return inp, ErrNotImplemented
-	}
-
-	inp.plaintext, err = ih.decodeAESCBC(rdr, k)
-	if err == nil {
-		return inp, fmt.Errorf("could not decrypt payload: %w", err)
+	} else if ih.EncryptedGCM {
+		inp.plaintext, err = ih.decodeAESCBC(rdr, k)
+		if err == nil {
+			return inp, fmt.Errorf("could not decrypt payload: %w", err)
+		}
+	} else {
+		return inp, ErrNotImplemented
 	}
 
 	return inp, err

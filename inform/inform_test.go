@@ -399,6 +399,7 @@ var sampleInformHeader = Header{
 	ZLibCompressed:   false,
 	SnappyCompressed: false,
 	EncryptedGCM:     true,
+	aad:              sampleInform[0:40],
 }
 
 func TestDecodeNoMagic(t *testing.T) {
@@ -428,5 +429,5 @@ func TestDecodePayload(t *testing.T) {
 	assert.Nil(t, err, "if this fails, look at TestDecodeHeader")
 	payload, err := inform.DecodePayload(r, "")
 	assert.Nil(t, err, "payload failed? we should check more specific error here")
-	t.Logf("payload: %+v", payload)
+	t.Logf("payload: %s", payload)
 }
