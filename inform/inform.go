@@ -42,13 +42,9 @@ type Header struct {
 	aad              []byte
 }
 
-// Payload is the payload, yo
-type Payload struct {
-	plaintext []byte
-}
-
-// DecodePayload decodes information from a UniFi inform payload using params from InformHeader
-func (ih *Header) DecodePayload(rdr io.Reader, key string) (inp Payload, err error) {
+// DecodePayload decodes information from a UniFi inform payload (usually json text)
+// using params from Header
+func (ih *Header) DecodePayload(rdr io.Reader, key string) (payload []byte, err error) {
 	// sort out encryption key
 	if key == "" {
 		key = defaultAuthKey
@@ -56,22 +52,22 @@ func (ih *Header) DecodePayload(rdr io.Reader, key string) (inp Payload, err err
 
 	k, err := hex.DecodeString(key)
 	if err != nil {
-		return inp, fmt.Errorf("invalid authkey %s: %w", key, err)
+		return payload, fmt.Errorf("invalid authkey %s: %w", key, err)
 	}
 
 	// decrypt
 	if ih.EncryptedAES && !ih.EncryptedGCM { // not implementing CBC unless we need it
-		return inp, ErrNotImplemented
+		return payload, ErrNotImplemented
 	} else if ih.EncryptedGCM {
-		inp.plaintext, err = ih.decodeAESCBC(rdr, k)
+		payload, err = ih.decodeAESCBC(rdr, k)
 		if err == nil {
-			return inp, fmt.Errorf("could not decrypt payload: %w", err)
+			return payload, fmt.Errorf("could not decrypt payload: %w", err)
 		}
 	} else {
-		return inp, ErrNotImplemented
+		return payload, ErrNotImplemented
 	}
 
-	return inp, err
+	return payload, err
 }
 
 func (ih *Header) decodeAESCBC(rdr io.Reader, key []byte) (pt []byte, err error) {
