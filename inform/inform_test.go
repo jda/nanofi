@@ -402,10 +402,17 @@ var sampleInformHeader = Header{
 }
 
 func TestDecodeNoMagic(t *testing.T) {
-	noMagic := []byte{21, 45, 200, 79, 94, 41, 236, 119, 50, 198, 36, 22, 69, 176, 232, 131, 166, 6, 237, 176, 50, 41, 216, 181, 166, 213, 189, 59, 81, 216}
+	noMagic := []byte{21, 45, 200, 79, 94, 41, 236, 119, 50, 198, 36, 22, 69, 176, 232, 131, 166, 6, 237, 176, 50, 41, 216, 181, 166, 213, 189, 59, 81, 216, 21, 45, 200, 79, 94, 41, 236, 119, 50, 198, 36, 22, 69, 176, 232, 131, 166, 6, 237, 176, 50, 41, 216, 181, 166, 213, 189, 59, 81, 216}
 	r := bytes.NewReader(noMagic)
 	_, err := DecodeHeader(r)
 	assert.Equal(t, ErrNoMagic, err, "decode should return ErrNoMagic when magic header not found")
+}
+
+func TestDecodeTooShort(t *testing.T) {
+	tooShort := []byte{21, 45, 200, 79, 94, 41, 236, 119, 50, 198, 36, 22, 69, 176, 232, 131, 166, 6, 237, 176, 50, 41, 216, 181, 166, 213, 189, 59, 81, 216}
+	r := bytes.NewReader(tooShort)
+	_, err := DecodeHeader(r)
+	assert.Equal(t, ErrTruncatedPacket, err, "decode should return ErrTruncatedPacket when packet is too short")
 }
 
 func TestDecodeHeader(t *testing.T) {
@@ -413,4 +420,13 @@ func TestDecodeHeader(t *testing.T) {
 	out, err := DecodeHeader(r)
 	assert.Nil(t, err, "successful decode should not return any errors")
 	assert.Equal(t, sampleInformHeader, out, "response should equal sample")
+}
+
+func TestDecodePayload(t *testing.T) {
+	r := bytes.NewReader(sampleInform)
+	inform, err := DecodeHeader(r)
+	assert.Nil(t, err, "if this fails, look at TestDecodeHeader")
+	payload, err := inform.DecodePayload(r, "")
+	assert.Nil(t, err, "payload failed? we should check more specific error here")
+	t.Logf("payload: %+v", payload)
 }
