@@ -1,3 +1,6 @@
+// Package inform handles data encoding/decoding for the UniFi
+// inform request/response cycle such that payload information
+// can be successfully exchanged.
 package inform
 
 import (
@@ -12,6 +15,9 @@ import (
 	"io/ioutil"
 	"net"
 )
+
+// InformContentType is the content type used for inform messages
+const InformContentType string = "application/x-binary"
 
 // ErrTruncatedPacket is returned when packet is too short
 var ErrTruncatedPacket = errors.New("truncated packet")
