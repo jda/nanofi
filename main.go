@@ -13,6 +13,7 @@ func init() {
 }
 
 func main() {
+	flag.Parse()
 	http.HandleFunc("/inform", handler)
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		panic(err)
@@ -36,11 +37,16 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	inform, err := inform.DecodeHeader(r.Body)
 	if err != nil {
 		glog.Errorf("%s: could not parse inform header: %w", r.RemoteAddr, err)
+		http.Error(w, "inform header error", http.StatusInternalServerError)
+		return
 	}
 
 	payload, err := inform.DecodePayload(r.Body, "")
 	if err != nil {
 		glog.Errorf("%s: could not decrypt inform payload: %w", r.RemoteAddr, err)
+		http.Error(w, "payload decrypt error", http.StatusInternalServerError)
+		return
+
 	}
 
 	glog.Infof("%s", payload)

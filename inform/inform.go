@@ -63,11 +63,14 @@ func (ih *Header) DecodePayload(rdr io.Reader, key string) (payload []byte, err 
 
 	// decrypt
 	if ih.EncryptedAES && !ih.EncryptedGCM { // not implementing CBC unless we need it
-		return payload, ErrNotImplemented
-	} else if ih.EncryptedGCM {
 		payload, err = ih.decodeAESCBC(rdr, k)
-		if err == nil {
-			return payload, fmt.Errorf("could not decrypt payload: %w", err)
+		if err != nil {
+			return payload, fmt.Errorf("AES-CBC: could not decrypt payload: %w", err)
+		}
+	} else if ih.EncryptedGCM {
+		payload, err = ih.decodeAESGCM(rdr, k)
+		if err != nil {
+			return payload, fmt.Errorf("AES-GCM: could not decrypt payload: %w", err)
 		}
 	} else {
 		return payload, ErrNotImplemented
@@ -87,12 +90,27 @@ func (ih *Header) decodeAESCBC(rdr io.Reader, key []byte) (pt []byte, err error)
 		return pt, fmt.Errorf("could not init aes block: %w", err)
 	}
 
+	mode := cipher.NewCBCDecrypter(block, ih.iv)
+	mode.CryptBlocks(data, data)
+	return data, nil
+}
+
+func (ih *Header) decodeAESGCM(rdr io.Reader, key []byte) (pt []byte, err error) {
+	data, err := ioutil.ReadAll(rdr)
+	if err != nil {
+		return pt, fmt.Errorf("could not load encrypted data: %w", err)
+	}
+
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return pt, fmt.Errorf("could not init aes block: %w", err)
+	}
+
 	aesgcm, err := cipher.NewGCMWithNonceSize(block, 16)
 	if err != nil {
 		return pt, fmt.Errorf("could not init GCM: %w", err)
 	}
 
-	//return pt, fmt.Errorf("len of data: %+v, payload len from header: %+v", len(data), ih.payloadLength)
 	pt, err = aesgcm.Open(nil, ih.iv, data, ih.aad)
 	if err != nil {
 		return pt, fmt.Errorf("could not decrypt payload: %w", err)
