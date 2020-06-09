@@ -40,6 +40,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "inform header error", http.StatusInternalServerError)
 		return
 	}
+	glog.Infof("inform header: %+v", inform)
 
 	payload, err := inform.DecodePayload(r.Body, "")
 	if err != nil {
