@@ -43,6 +43,8 @@ func (ih *Header) DecodePayload(rdr io.Reader, key string) (payload []byte, err 
 
 	// decompress
 	if ih.SnappyCompressed {
+		// why do we throw away the last two bytes? no idea, but snappy
+		// claims data is corrupt if we don't.
 		payload = payload[0 : len(payload)-2]
 		payload, err = snappy.Decode(nil, payload)
 		if err != nil {
