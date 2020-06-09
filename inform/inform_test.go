@@ -2,10 +2,13 @@ package inform
 
 import (
 	"bytes"
+	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
+
+// Test case for inform packet using AES GCM without compression
 
 var sampleInform = []byte{0x54, 0x4e, 0x42, 0x55, 0x00, 0x00, 0x00, 0x00,
 	0x74, 0x83, 0xc2, 0x0f, 0x15, 0xb0, 0x00, 0x09,
@@ -429,5 +432,6 @@ func TestDecodePayload(t *testing.T) {
 	assert.Nil(t, err, "if this fails, look at TestDecodeHeader")
 	payload, err := inform.DecodePayload(r, "")
 	assert.Nil(t, err, "payload failed? we should check more specific error here")
+	assert.True(t, json.Valid(payload), "payload is not valid json, so decode likely failed")
 	t.Logf("payload: %s", payload)
 }
