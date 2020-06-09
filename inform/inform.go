@@ -14,6 +14,8 @@ import (
 	"io"
 	"io/ioutil"
 	"net"
+
+	"github.com/golang/snappy"
 )
 
 // InformContentType is the content type used for inform messages
@@ -62,7 +64,7 @@ func (ih *Header) DecodePayload(rdr io.Reader, key string) (payload []byte, err 
 	}
 
 	// decrypt
-	if ih.EncryptedAES && !ih.EncryptedGCM { // not implementing CBC unless we need it
+	if ih.EncryptedAES && !ih.EncryptedGCM {
 		payload, err = ih.decodeAESCBC(rdr, k)
 		if err != nil {
 			return payload, fmt.Errorf("AES-CBC: could not decrypt payload: %w", err)
@@ -74,6 +76,18 @@ func (ih *Header) DecodePayload(rdr io.Reader, key string) (payload []byte, err 
 		}
 	} else {
 		return payload, ErrNotImplemented
+	}
+
+	// decompress
+	if ih.SnappyCompressed {
+		payload = payload[0 : len(payload)-2]
+		payload, err = snappy.Decode(nil, payload)
+		if err != nil {
+			return payload, fmt.Errorf("Snappy: could not decompress payload: %s", err)
+		}
+		return payload, nil
+	} else if ih.ZLibCompressed {
+		return payload, fmt.Errorf("ZLib compressed: %w", ErrNotImplemented)
 	}
 
 	return payload, err
