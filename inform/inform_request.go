@@ -10,6 +10,8 @@ import (
 	"io"
 	"io/ioutil"
 
+	"github.com/jda/nanofi/pkcs7"
+
 	"github.com/golang/snappy"
 )
 
@@ -43,9 +45,6 @@ func (ih *Header) DecodePayload(rdr io.Reader, key string) (payload []byte, err 
 
 	// decompress
 	if ih.SnappyCompressed {
-		// why do we throw away the last two bytes? no idea, but snappy
-		// claims data is corrupt if we don't.
-		payload = payload[0 : len(payload)-2]
 		payload, err = snappy.Decode(nil, payload)
 		if err != nil {
 			return payload, fmt.Errorf("Snappy: could not decompress payload: %s", err)
@@ -71,6 +70,12 @@ func (ih *Header) decodeAESCBC(rdr io.Reader, key []byte) (pt []byte, err error)
 
 	mode := cipher.NewCBCDecrypter(block, ih.iv)
 	mode.CryptBlocks(data, data)
+
+	data, err = pkcs7.Unpad(data, mode.BlockSize())
+	if err != nil {
+		return data, fmt.Errorf("could not unpad data: %w", err)
+	}
+
 	return data, nil
 }
 
