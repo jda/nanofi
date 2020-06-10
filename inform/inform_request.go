@@ -39,15 +39,13 @@ func (ih *Header) DecodePayload(rdr io.Reader, key string) (payload []byte, err 
 		if err != nil {
 			return payload, fmt.Errorf("AES-GCM: could not decrypt payload: %w", err)
 		}
-	} else {
-		return payload, ErrNotImplemented
 	}
 
 	// decompress
 	if ih.SnappyCompressed {
 		payload, err = snappy.Decode(nil, payload)
 		if err != nil {
-			return payload, fmt.Errorf("Snappy: could not decompress payload: %s", err)
+			return payload, fmt.Errorf("Snappy: could not decompress payload: %w", err)
 		}
 		return payload, nil
 	} else if ih.ZLibCompressed {
