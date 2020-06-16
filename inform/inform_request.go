@@ -2,6 +2,7 @@ package inform
 
 import (
 	"bytes"
+	"compress/zlib"
 	"crypto/aes"
 	"crypto/cipher"
 	"encoding/binary"
@@ -27,6 +28,7 @@ func (ih *Header) DecodePayload(rdr io.Reader, key string) (payload []byte, err 
 	if err != nil {
 		return payload, fmt.Errorf("invalid authkey %s: %w", key, err)
 	}
+	ih.encKey = k
 
 	// decrypt
 	if ih.EncryptedAES && !ih.EncryptedGCM {
@@ -49,10 +51,23 @@ func (ih *Header) DecodePayload(rdr io.Reader, key string) (payload []byte, err 
 		}
 		return payload, nil
 	} else if ih.ZLibCompressed {
-		return payload, fmt.Errorf("ZLib compressed: %w", ErrNotImplemented)
+		payload, err = zLibDecode(payload)
+		if err != nil {
+			return payload, fmt.Errorf("ZLib: could not decompress payload: %w", err)
+		}
 	}
 
 	return payload, err
+}
+
+func zLibDecode(payload []byte) (out []byte, err error) {
+	r := bytes.NewReader(payload)
+	data, err := zlib.NewReader(r)
+	if err != nil {
+		return out, err
+	}
+	defer data.Close()
+	return ioutil.ReadAll(data)
 }
 
 func (ih *Header) decodeAESCBC(rdr io.Reader, key []byte) (pt []byte, err error) {
@@ -107,6 +122,7 @@ func DecodeHeader(rdr io.Reader) (inf Header, err error) {
 	if _, err := io.ReadFull(rdr, hb); err != nil {
 		return inf, ErrTruncatedPacket
 	}
+	inf.aad = hb
 	hdr := bytes.NewReader(hb)
 
 	magic := make([]byte, 4, 4)
@@ -146,8 +162,6 @@ func DecodeHeader(rdr io.Reader) (inf Header, err error) {
 	}
 
 	binary.Read(hdr, binary.BigEndian, &inf.payloadLength)
-
-	inf.aad = hb
 
 	return inf, nil
 }
