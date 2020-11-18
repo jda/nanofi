@@ -38,4 +38,5 @@ type Header struct {
 	SnappyCompressed bool
 	EncryptedGCM     bool
 	aad              []byte
+	encKey           []byte
 }

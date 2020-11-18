@@ -7,4 +7,6 @@ require (
 	github.com/golang/snappy v0.0.1
 	github.com/google/gopacket v1.1.17
 	github.com/stretchr/testify v1.6.1
+	golang.org/x/sys v0.0.0-20190626221950-04f50cda93cb // indirect
+	googlemaps.github.io/maps v1.2.1
 )
