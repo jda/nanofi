@@ -1,4 +1,5 @@
 # µFi: a small UniFi controller
+NOTE: no controller yet, just libs for handling inform. Making public early as [pixiedust](https://github.com/jda/pixiedust) needs this.
 
 ## Design Principles
 1. Small systems
