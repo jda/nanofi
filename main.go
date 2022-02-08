@@ -3,6 +3,8 @@ package main
 import (
 	"flag"
 	"net/http"
+
+	"github.com/golang/glog"
 )
 
 func init() {
@@ -10,9 +12,13 @@ func init() {
 }
 
 func main() {
-	processFlags()
+	listenAddr := flag.String("listen", ":8080", "IP and port on which to listen")
+	flag.Parse()
+
 	http.HandleFunc("/inform", informHandler)
-	if err := http.ListenAndServe(sysConfig.Listen, nil); err != nil {
+
+	glog.Infof("about to listen on: %s", *listenAddr)
+	if err := http.ListenAndServe(*listenAddr, nil); err != nil {
 		panic(err)
 	}
 }

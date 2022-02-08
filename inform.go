@@ -37,7 +37,6 @@ func informHandler(w http.ResponseWriter, r *http.Request) {
 		glog.Errorf("%s: could not decrypt inform payload: %s", r.RemoteAddr, err)
 		http.Error(w, "payload decrypt error", http.StatusInternalServerError)
 		return
-
 	}
 
 	//
@@ -60,6 +59,7 @@ func informHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		glog.Fatalf("failed to decode response: %s", err)
 	}
+
 	dP, err := dH.DecodePayload(resX, "")
 	if err != nil {
 		glog.Fatalf("failed to decode response payload: %s", err)
