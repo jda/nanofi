@@ -53,7 +53,7 @@ func TestDecodeInformResponse1Payload(t *testing.T) {
 	r := bytes.NewReader(sampleInformResponse1)
 	inform, err := DecodeHeader(r)
 	assert.Nil(t, err, "if this fails, look at TestDecodeInformResponse1")
-	payload, err := inform.DecodePayload(r, "")
+	payload, err := inform.DecodePayload(r, "c0b2991c003a7ab6a9db093e216836a8")
 	assert.Nil(t, err, "payload failed? we should check more specific error here")
 	assert.True(t, json.Valid(payload), "payload is not valid json, so decode likely failed")
 	t.Logf("payload: %s", payload)
