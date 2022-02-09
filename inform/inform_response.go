@@ -2,6 +2,7 @@ package inform
 
 import (
 	"bytes"
+	"compress/zlib"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
@@ -61,7 +62,9 @@ func (ih *Header) NewResponse(ir informResponse) (encoded []byte, err error) {
 	if ih.SnappyCompressed {
 		payload = snappy.Encode(nil, payload)
 	} else if ih.ZLibCompressed {
-		return nil, fmt.Errorf("ZLib compression: %w", ErrNotImplemented)
+		ih.ZLibCompressed = false
+		// must call syncFlagMask() before serializing
+		glog.Warningf("ZLib: not implemented, unsetting header flag and #YOLO")
 	}
 
 	// pad if AES without GCM
@@ -72,6 +75,10 @@ func (ih *Header) NewResponse(ir informResponse) (encoded []byte, err error) {
 		}
 		glog.Infof("payload padded: %+v", payload)
 	}
+
+	glog.Infof("headers: %+v", ih)
+
+	ih.syncFlagMask()
 
 	// build header
 	hdr := make([]byte, 0, 40)
@@ -113,6 +120,18 @@ func (ih *Header) NewResponse(ir informResponse) (encoded []byte, err error) {
 	out = append(out, message...)
 
 	return out, nil
+}
+
+func zLibEncode(payload []byte) (out []byte, err error) {
+	var b bytes.Buffer
+
+	w := zlib.NewWriter(&b)
+	_, err = w.Write(payload)
+	if err != nil {
+		return out, err
+	}
+	w.Close()
+	return b.Bytes(), err
 }
 
 func encodeAESCBC(key []byte, iv []byte, pt []byte) (ct []byte, err error) {
