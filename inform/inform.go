@@ -40,3 +40,24 @@ type Header struct {
 	aad              []byte
 	encKey           []byte
 }
+
+// syncFlagMask sets flagMask to reflect current state of Header
+func (h *Header) syncFlagMask() {
+	var flagMask uint16
+
+	if h.EncryptedAES {
+		flagMask = flagMask | flagEncryptedAES
+
+		if h.EncryptedGCM {
+			flagMask = flagMask | flagEncryptedAESwithGCM
+		}
+	}
+
+	if h.ZLibCompressed {
+		flagMask = flagMask | flagZLibCompress
+	} else if h.SnappyCompressed {
+		flagMask = flagMask | flagSnappyCompress
+	}
+
+	h.flagMask = flagMask
+}
