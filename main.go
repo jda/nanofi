@@ -18,7 +18,7 @@ func main() {
 	http.HandleFunc("/inform", informHandler)
 
 	glog.Infof("about to listen on: %s", *listenAddr)
-	if err := http.ListenAndServe(*listenAddr, nil); err != nil {
+	if err := http.ListenAndServe(*listenAddr, nil); err != nil { // nosemgrep: go.lang.security.audit.net.use-tls.use-tls
 		panic(err)
 	}
 }
