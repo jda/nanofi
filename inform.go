@@ -67,7 +67,8 @@ func informHandler(w http.ResponseWriter, r *http.Request) {
 	glog.Infof("got response payload: %s", dP)
 
 	w.Header().Set("Content-Type", inform.InformContentType)
-	_, err = w.Write((res))
+	_, err = w.Write((res)) // nosemgrep: go.lang.security.audit.xss.no-direct-write-to-responsewriter.no-direct-write-to-responsewriter
+
 	if err != nil {
 		glog.Errorf("%s: error sending response: %s", r.RemoteAddr, err)
 		return
